@@ -23,7 +23,7 @@ from trade import Trade
 """
 
 # 0.000011645
-symbol = 'BNBBTC'
+symbol = 'XRPBTC'
 quantity = '20'
 period = 10
 delta = .00000001
@@ -46,6 +46,8 @@ moving_avg_length = 100
 
 trades = []
 prices = []
+two_step_buy = 0
+two_step_sell = 0
 for i in range(len(ADA)-1):
     ask_price = (float(ADA[i+1][2]) + float(ADA[i+1][3]) + float(ADA[i+1][4])) / 3
     last_price = (float(ADA[i][2]) + float(ADA[i][3]) + float(ADA[i][4])) / 3
@@ -53,22 +55,26 @@ for i in range(len(ADA)-1):
     active_avg = sum(prices) / len(prices)
     if not trade_placed:
         if ask_price/active_avg > sell_gamma and ask_price/last_price < sell_gamma:
-            if bnb_holdings > 0:
+            two_step_sell += 1
+            if bnb_holdings > 0 and two_step_sell > 2:
                 print("SELL")
                 trade_placed = True
                 trade_type = "short"
                 btc_holdings += 1
                 bnb_holdings -= 1
                 trades.append(Trade(ask_price, .002, trade_type))
+                two_step_sell = 0
 
         elif ask_price/active_avg < buy_gamma and ask_price/last_price > buy_gamma:
-            if btc_holdings > 0:
+            two_step_buy += 1
+            if btc_holdings > 0 and two_step_buy > 2:
                 print("BUY")
                 trade_placed = True
                 trade_type = "long"
                 btc_holdings -= 1
                 bnb_holdings += 1
                 trades.append(Trade(ask_price, .002, trade_type))
+                two_step_buy = 0
 
     elif trade_type == "short":
         if ask_price/active_avg < short_exit_gamma:

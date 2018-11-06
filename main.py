@@ -34,7 +34,7 @@ def float_to_str(f):
 
 
 # 0.000011645
-symbol = 'BCCBTC'
+symbol = 'XRPBTC'
 quantity = '20'
 period = 30
 request_interval = 60
@@ -51,6 +51,8 @@ buy_gamma = 0.99999
 long_exit_gamma = 1.0
 short_exit_gamma = 1.0
 prices = []
+two_step_buy = 0
+two_step_sell = 0
 
 while True:
     ticker = client.get_ticker(symbol=symbol)
@@ -60,34 +62,37 @@ while True:
     prices.append(ask_price)
     active_avg = sum(prices) / len(prices)
     order = False
-    balance = client.get_asset_balance(asset='BCC')
     if not trade_placed:
         if ask_price/active_avg > sell_gamma and ask_price/last_price < sell_gamma:
-            balance = float(client.get_asset_balance(asset='BCC')['free'])
-            if balance > 0.04:
+            two_step_sell += 1
+            balance = float(client.get_asset_balance(asset='XRP')['free'])
+            if balance > 0.0011 and two_step_sell >= 2:
                 order = client.create_order(
                     symbol=symbol,
                     side=SIDE_SELL,
                     type=ORDER_TYPE_LIMIT,
                     timeInForce=TIME_IN_FORCE_GTC,
-                    quantity=.04,
+                    quantity=13,
                     price=ticker['bidPrice'])
                 print("SELL")
                 trade_placed = True
                 trade_type = "short"
+                two_step_sell = 0
         elif ask_price/active_avg < buy_gamma and ask_price/last_price > buy_gamma:
             balance = float(client.get_asset_balance(asset='BTC')['free'])
-            if balance > 0.004:
+            two_step_buy += 1
+            if balance > 0.0011 and two_step_buy >= 2:
                 order = client.create_order(
                     symbol=symbol,
                     side=SIDE_BUY,
                     type=ORDER_TYPE_LIMIT,
                     timeInForce=TIME_IN_FORCE_GTC,
-                    quantity=.04,
+                    quantity=13,
                     price=ticker['askPrice'])
                 print("BUY")
                 trade_placed = True
                 trade_type = "long"
+                two_step_buy = 0
     elif trade_type == "short":
         if ask_price/active_avg < short_exit_gamma:
             print("Exit Trade")
