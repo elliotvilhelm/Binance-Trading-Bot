@@ -37,14 +37,14 @@ def float_to_str(f):
 symbol = 'BCCBTC'
 quantity = '20'
 period = 30
-request_interval = 30
+request_interval = 60
 client = Client(api_key, api_secret)
 info = client.get_symbol_info(symbol)
 holdings = 50.
 moving_avg = 0
 trade_placed = False
 trade_type = False
-moving_avg_length = 10
+moving_avg_length = 100
 
 sell_gamma = 1.0
 buy_gamma = 1.0
@@ -57,7 +57,7 @@ while True:
     ask_price = float(ticker['askPrice'])
     last_price = float(ticker['lastPrice'])
     weightedAvgPrice = float(ticker['weightedAvgPrice'])
-    moving_avg = (ask_price + last_price) / 2.0
+    # moving_avg = (ask_price + last_price) / 2.0
     # active_avg = 1.0 * moving_avg + 0.0 * weightedAvgPrice
     prices.append(ask_price)
     active_avg = sum(prices) / len(prices)

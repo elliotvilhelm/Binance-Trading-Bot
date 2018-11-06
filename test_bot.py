@@ -41,6 +41,7 @@ sell_gamma = 1.0
 buy_gamma = 1.0
 long_exit_gamma = 1.00
 short_exit_gamma = 1.00
+moving_avg_length = 100
 
 trades = []
 prices = []
@@ -72,6 +73,7 @@ for i in range(len(ADA)-1):
             trade_type = False
     # print("-"*50)
     # print(f"Active Average: {active_avg}\naskPrice: {ask_price}\nlast_price: {last_price}")
+    prices = prices[-moving_avg_length:]
 
 
 sum_buy = 0
