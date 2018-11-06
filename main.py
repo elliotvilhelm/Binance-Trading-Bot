@@ -100,14 +100,14 @@ while True:
                 trade_placed = True
                 trade_type = "long"
     elif trade_type == "short":
-        if ask_price/moving_avg < short_exit_gamma:
+        if ask_price/active_avg < short_exit_gamma:
             print("Exit Trade")
             if len(client.get_open_orders()) > 0:
                 client.cancel_order(symbol=symbol, orderId=client.get_open_orders()[0]['orderId'])
             trade_placed = False
             trade_type = False
     elif trade_type == 'long':
-        if ask_price/moving_avg > long_exit_gamma:
+        if ask_price/active_avg > long_exit_gamma:
             print("Exit Trade")
             if len(client.get_open_orders()) > 0:
                 client.cancel_order(symbol=symbol, orderId=client.get_open_orders()[0]['orderId'])
