@@ -31,15 +31,16 @@ client = Client(api_key, api_secret)
 info = client.get_symbol_info(symbol)
 ADA = client.get_historical_klines(symbol=symbol, interval=binance_constants.KLINE_INTERVAL_1MINUTE, start_str="1 day ago UTC")
 
-holdings = 50.
+btc_holdings = 50.
+bnb_holdings = 0.
 moving_avg = 0
 trade_placed = False
 trade_type = False
 epsilon = 0.0000001
 
 sell_gamma = 1.0
-buy_gamma = 1.0
-long_exit_gamma = 1.00
+buy_gamma = .99999
+long_exit_gamma = 1.0
 short_exit_gamma = 1.00
 moving_avg_length = 100
 
@@ -52,15 +53,23 @@ for i in range(len(ADA)-1):
     active_avg = sum(prices) / len(prices)
     if not trade_placed:
         if ask_price/active_avg > sell_gamma and ask_price/last_price < sell_gamma:
-            print("SELL")
-            trade_placed = True
-            trade_type = "short"
-            trades.append(Trade(ask_price, .002, trade_type))
+            if bnb_holdings > 0:
+                print("SELL")
+                trade_placed = True
+                trade_type = "short"
+                btc_holdings += 1
+                bnb_holdings -= 1
+                trades.append(Trade(ask_price, .002, trade_type))
+
         elif ask_price/active_avg < buy_gamma and ask_price/last_price > buy_gamma:
-            print("BUY")
-            trade_placed = True
-            trade_type = "long"
-            trades.append(Trade(ask_price, .002, trade_type))
+            if btc_holdings > 0:
+                print("BUY")
+                trade_placed = True
+                trade_type = "long"
+                btc_holdings -= 1
+                bnb_holdings += 1
+                trades.append(Trade(ask_price, .002, trade_type))
+
     elif trade_type == "short":
         if ask_price/active_avg < short_exit_gamma:
             print("Exit Short Trade")

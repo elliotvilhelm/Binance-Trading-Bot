@@ -47,7 +47,7 @@ trade_type = False
 moving_avg_length = 100
 
 sell_gamma = 1.0
-buy_gamma = 1.0
+buy_gamma = 0.99999
 long_exit_gamma = 1.0
 short_exit_gamma = 1.0
 prices = []
@@ -57,44 +57,33 @@ while True:
     ask_price = float(ticker['askPrice'])
     last_price = float(ticker['lastPrice'])
     weightedAvgPrice = float(ticker['weightedAvgPrice'])
-    # moving_avg = (ask_price + last_price) / 2.0
-    # active_avg = 1.0 * moving_avg + 0.0 * weightedAvgPrice
     prices.append(ask_price)
     active_avg = sum(prices) / len(prices)
     order = False
     balance = client.get_asset_balance(asset='BCC')
     if not trade_placed:
-        if ask_price/active_avg > sell_gamma:
-            print("ask/active > sell gamma")
-        if ask_price/last_price < sell_gamma:
-            print("ask/last < sell gamma")
-        if ask_price/active_avg < buy_gamma:
-            print("ask/active < buy_gamma")
-        if ask_price/last_price > buy_gamma:
-            print("ask/last > buy_gamma")
-
         if ask_price/active_avg > sell_gamma and ask_price/last_price < sell_gamma:
             balance = float(client.get_asset_balance(asset='BCC')['free'])
-            if balance > 0.02:
+            if balance > 0.04:
                 order = client.create_order(
                     symbol=symbol,
                     side=SIDE_SELL,
                     type=ORDER_TYPE_LIMIT,
                     timeInForce=TIME_IN_FORCE_GTC,
-                    quantity=.02,
+                    quantity=.04,
                     price=ticker['bidPrice'])
                 print("SELL")
                 trade_placed = True
                 trade_type = "short"
         elif ask_price/active_avg < buy_gamma and ask_price/last_price > buy_gamma:
             balance = float(client.get_asset_balance(asset='BTC')['free'])
-            if balance > 0.002:
+            if balance > 0.004:
                 order = client.create_order(
                     symbol=symbol,
                     side=SIDE_BUY,
                     type=ORDER_TYPE_LIMIT,
                     timeInForce=TIME_IN_FORCE_GTC,
-                    quantity=.02,
+                    quantity=.04,
                     price=ticker['askPrice'])
                 print("BUY")
                 trade_placed = True
@@ -103,6 +92,7 @@ while True:
         if ask_price/active_avg < short_exit_gamma:
             print("Exit Trade")
             if len(client.get_open_orders()) > 0:
+                print("Actually canceled a short order")
                 client.cancel_order(symbol=symbol, orderId=client.get_open_orders()[0]['orderId'])
             trade_placed = False
             trade_type = False
@@ -110,6 +100,7 @@ while True:
         if ask_price/active_avg > long_exit_gamma:
             print("Exit Trade")
             if len(client.get_open_orders()) > 0:
+                print("Actually canceled a long order")
                 client.cancel_order(symbol=symbol, orderId=client.get_open_orders()[0]['orderId'])
             trade_placed = False
             trade_type = False
