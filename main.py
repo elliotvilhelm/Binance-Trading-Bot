@@ -36,22 +36,21 @@ def float_to_str(f):
 # 0.000011645
 symbol = 'BCCBTC'
 quantity = '20'
-period = 10
-delta = .00000001
+period = 30
+request_interval = 30
 client = Client(api_key, api_secret)
 info = client.get_symbol_info(symbol)
 holdings = 50.
 moving_avg = 0
 trade_placed = False
 trade_type = False
-# gamma = .001
-gamma = 0.00001
-sell_gamma = 0.00018
-buy_gamma = -0.0000008
-exit_gamma = 0.00042
-long_exit_gamma = 0.0003
-short_exit_gamma = 0.00005
-# gamma = 0.0
+moving_avg_length = 10
+
+sell_gamma = 1.0
+buy_gamma = 1.0
+long_exit_gamma = 1.0
+short_exit_gamma = 1.0
+prices = []
 
 while True:
     ticker = client.get_ticker(symbol=symbol)
@@ -59,14 +58,22 @@ while True:
     last_price = float(ticker['lastPrice'])
     weightedAvgPrice = float(ticker['weightedAvgPrice'])
     moving_avg = (ask_price + last_price) / 2.0
-    active_avg = 0.98 * moving_avg + .02 * weightedAvgPrice
+    # active_avg = 1.0 * moving_avg + 0.0 * weightedAvgPrice
+    prices.append(ask_price)
+    active_avg = sum(prices) / len(prices)
     order = False
     balance = client.get_asset_balance(asset='BCC')
-    # if len(client.get_open_orders()) == 0:
-    #     trade_placed = False
-    #     trade_type = False
     if not trade_placed:
-        if ask_price/active_avg > 1.0 - sell_gamma and ask_price/last_price < 1.0 + sell_gamma:
+        if ask_price/active_avg > sell_gamma:
+            print("ask/active > sell gamma")
+        if ask_price/last_price < sell_gamma:
+            print("ask/last < sell gamma")
+        if ask_price/active_avg < buy_gamma:
+            print("ask/active < buy_gamma")
+        if ask_price/last_price > buy_gamma:
+            print("ask/last > buy_gamma")
+
+        if ask_price/active_avg > sell_gamma and ask_price/last_price < sell_gamma:
             balance = float(client.get_asset_balance(asset='BCC')['free'])
             if balance > 0.02:
                 order = client.create_order(
@@ -76,11 +83,10 @@ while True:
                     timeInForce=TIME_IN_FORCE_GTC,
                     quantity=.02,
                     price=ticker['bidPrice'])
-                print(client.get_open_orders())
                 print("SELL")
                 trade_placed = True
                 trade_type = "short"
-        elif ask_price/active_avg < 1.0 - buy_gamma and ask_price/last_price > 1.0 + buy_gamma:
+        elif ask_price/active_avg < buy_gamma and ask_price/last_price > buy_gamma:
             balance = float(client.get_asset_balance(asset='BTC')['free'])
             if balance > 0.002:
                 order = client.create_order(
@@ -90,25 +96,25 @@ while True:
                     timeInForce=TIME_IN_FORCE_GTC,
                     quantity=.02,
                     price=ticker['askPrice'])
-                # print(order)
-                print(client.get_open_orders())
                 print("BUY")
                 trade_placed = True
                 trade_type = "long"
     elif trade_type == "short":
-        if ask_price/moving_avg < 1.0 - short_exit_gamma:
+        if ask_price/moving_avg < short_exit_gamma:
             print("Exit Trade")
             if len(client.get_open_orders()) > 0:
                 client.cancel_order(symbol=symbol, orderId=client.get_open_orders()[0]['orderId'])
             trade_placed = False
             trade_type = False
     elif trade_type == 'long':
-        if ask_price/moving_avg > 1.0 + long_exit_gamma:
+        if ask_price/moving_avg > long_exit_gamma:
             print("Exit Trade")
             if len(client.get_open_orders()) > 0:
                 client.cancel_order(symbol=symbol, orderId=client.get_open_orders()[0]['orderId'])
             trade_placed = False
             trade_type = False
+
     print("-"*50)
     print(f"Active Average: {float_to_str(active_avg)}   Ask Price: {float_to_str(ask_price)}   Last Price: {float_to_str(last_price)}")
-    time.sleep(3)
+    time.sleep(request_interval)
+    prices = prices[-moving_avg_length:]

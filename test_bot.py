@@ -1,6 +1,7 @@
 from binance.client import Client
 from config import api_key, api_secret
 import binance_constants
+from trade import Trade
 
 """
 [
@@ -28,37 +29,68 @@ period = 10
 delta = .00000001
 client = Client(api_key, api_secret)
 info = client.get_symbol_info(symbol)
-ADA = client.get_historical_klines(symbol=symbol, interval=binance_constants.KLINE_INTERVAL_1HOUR, start_str="1 day ago UTC")
+ADA = client.get_historical_klines(symbol=symbol, interval=binance_constants.KLINE_INTERVAL_1MINUTE, start_str="1 day ago UTC")
+
 holdings = 50.
 moving_avg = 0
 trade_placed = False
 trade_type = False
 epsilon = 0.0000001
 
+sell_gamma = 1.0
+buy_gamma = 1.0
+long_exit_gamma = 1.00
+short_exit_gamma = 1.00
+
+trades = []
+prices = []
 for i in range(len(ADA)-1):
-    ask_price = (float(ADA[i+1][2]) + float(ADA[i+1][3])) / 2
-    last_price = (float(ADA[i][2]) + float(ADA[i][3])) / 2
-    active_avg = (float(ADA[i+1][2]) + float(ADA[i+1][3]) +
-                  float(ADA[i][2]) + float(ADA[i][3]))/4
+    ask_price = (float(ADA[i+1][2]) + float(ADA[i+1][3]) + float(ADA[i+1][4])) / 3
+    last_price = (float(ADA[i][2]) + float(ADA[i][3]) + float(ADA[i][4])) / 3
+    prices.append(ask_price)
+    active_avg = sum(prices) / len(prices)
     if not trade_placed:
-        if ask_price + epsilon > active_avg and ask_price < last_price + epsilon:
+        if ask_price/active_avg > sell_gamma and ask_price/last_price < sell_gamma:
             print("SELL")
             trade_placed = True
             trade_type = "short"
-        elif ask_price < active_avg + epsilon and ask_price + epsilon > last_price:
+            trades.append(Trade(ask_price, .002, trade_type))
+        elif ask_price/active_avg < buy_gamma and ask_price/last_price > buy_gamma:
             print("BUY")
             trade_placed = True
             trade_type = "long"
+            trades.append(Trade(ask_price, .002, trade_type))
     elif trade_type == "short":
-        if ask_price < active_avg + epsilon:
+        if ask_price/active_avg < short_exit_gamma:
             print("Exit Short Trade")
             trade_placed = False
             trade_type = False
     elif trade_type == 'long':
-        if ask_price > active_avg + epsilon:
+        if ask_price/active_avg > long_exit_gamma:
             print("Exit Long Trade")
             trade_placed = False
             trade_type = False
-    print("-"*50)
-    print(f"Active Average: {active_avg}\naskPrice: {ask_price}\nlast_price: {last_price}")
-    print("-"*50)
+    # print("-"*50)
+    # print(f"Active Average: {active_avg}\naskPrice: {ask_price}\nlast_price: {last_price}")
+
+
+sum_buy = 0
+sum_sell = 0
+initial_wallet = 50.
+pocket = 50.
+holdings = 0
+for trade in trades:
+    if trade.type == 'long':
+        pocket -= trade.quantity * trade.price
+        sum_buy += trade.quantity * trade.price
+        holdings += trade.quantity
+    else:
+        holdings -= trade.quantity
+        pocket += trade.quantity * trade.price
+        sum_sell += trade.quantity * trade.price
+
+ask_price = (float(ADA[-1][2]) + float(ADA[-1][3]) + float(ADA[-1][4])) / 3
+post_assets = pocket + holdings * ask_price
+profit = post_assets - initial_wallet
+print("profit: ", profit)
+
