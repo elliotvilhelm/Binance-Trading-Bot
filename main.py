@@ -47,7 +47,7 @@ trade_type = False
 moving_avg_length = 100
 
 sell_gamma = 1.0
-buy_gamma = 0.99999
+buy_gamma = 0.9999999
 long_exit_gamma = 1.0
 short_exit_gamma = 1.0
 prices = []
@@ -55,6 +55,10 @@ two_step_buy = 0
 two_step_sell = 0
 
 while True:
+    try:
+        ticker = client.get_ticker(symbol=symbol)
+    except:
+        time.sleep(60)
     ticker = client.get_ticker(symbol=symbol)
     ask_price = float(ticker['askPrice'])
     last_price = float(ticker['lastPrice'])
@@ -66,13 +70,13 @@ while True:
         if ask_price/active_avg > sell_gamma and ask_price/last_price < sell_gamma:
             two_step_sell += 1
             balance = float(client.get_asset_balance(asset='XRP')['free'])
-            if balance > 0.0011 and two_step_sell >= 2:
+            if balance > 0.0014742:# and two_step_sell >= 2:
                 order = client.create_order(
                     symbol=symbol,
                     side=SIDE_SELL,
                     type=ORDER_TYPE_LIMIT,
                     timeInForce=TIME_IN_FORCE_GTC,
-                    quantity=13,
+                    quantity=17,
                     price=ticker['bidPrice'])
                 print("SELL")
                 trade_placed = True
@@ -81,13 +85,13 @@ while True:
         elif ask_price/active_avg < buy_gamma and ask_price/last_price > buy_gamma:
             balance = float(client.get_asset_balance(asset='BTC')['free'])
             two_step_buy += 1
-            if balance > 0.0011 and two_step_buy >= 2:
+            if balance > 0.001559 and two_step_buy >= 2:
                 order = client.create_order(
                     symbol=symbol,
                     side=SIDE_BUY,
                     type=ORDER_TYPE_LIMIT,
                     timeInForce=TIME_IN_FORCE_GTC,
-                    quantity=13,
+                    quantity=18,
                     price=ticker['askPrice'])
                 print("BUY")
                 trade_placed = True
