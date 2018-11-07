@@ -67,7 +67,7 @@ for i in range(len(ADA)-1):
 
         elif ask_price/active_avg < buy_gamma and ask_price/last_price > buy_gamma:
             two_step_buy += 1
-            if btc_holdings > 0 and two_step_buy > 2:
+            if btc_holdings > 0:# and two_step_buy > 2:
                 print("BUY")
                 trade_placed = True
                 trade_type = "long"
