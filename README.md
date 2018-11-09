@@ -24,4 +24,4 @@ Then run `python3 main.py`. If you wish to run the bot as a background task you 
 chmod u+x run.sh
 ./run.sh
 ```
-This is how I run the bot on AWS EC2 instance.
+This is how I run the bot on AWS EC2 instance. Bot activity will be logged to a file called `output.log`.
