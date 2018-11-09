@@ -3,7 +3,7 @@ from config import api_key, api_secret
 from strategy import MovingAverage
 
 class Bot:
-    def __init__(self, base_coin='BTC', symbols=['XRP', 'BCC', 'PHX']):
+    def __init__(self, base_coin='BTC', symbols=['XRP', 'BCC', 'BAT']):
         self.client = Client(api_key, api_secret)
         self.symbols = symbols
 
@@ -22,8 +22,8 @@ class Bot:
         self.trade_id = 0
 
         self.m1 = MovingAverage(self, 'XRP')
-        self.m2 = MovingAverage(self, 'BNB')
-        self.m3 = MovingAverage(self, 'PHX')
+        self.m2 = MovingAverage(self, 'BCC')
+        self.m3 = MovingAverage(self, 'BAT')
 
     def tick(self):
         # self.update_tickers()

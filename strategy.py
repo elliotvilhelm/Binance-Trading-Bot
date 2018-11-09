@@ -33,6 +33,7 @@ class MovingAverage:
             if ask_price/active_avg > self.sell_gamma and ask_price/last_price < self.sell_gamma:
                 balance = float(self.bot.client.get_asset_balance(asset=self.trade_coin)['free'])
                 min_quantity = ceil(.001 / float(ticker['bidPrice']))
+                logging.info(f"min quant sell: {min_quantity} coin: {self.trade_coin}")
                 if balance > min_quantity:
                     self.order = self.bot.client.create_order(
                         symbol=self.trade_coin + self.bot.base_coin,
