@@ -21,15 +21,13 @@ class Bot:
         self.active_trades = {}
         self.trade_id = 0
 
-        self.m1 = MovingAverage(self, 'XRP')
-        self.m2 = MovingAverage(self, 'BCC')
-        self.m3 = MovingAverage(self, 'BAT')
+        self.moving_avgs = []
+        for s in symbols:
+            self.moving_avgs.append(MovingAverage(self, s))
 
     def tick(self):
-        # self.update_tickers()
-        self.m1.moving_avg()
-        self.m2.moving_avg()
-        self.m3.moving_avg()
+        for m in self.moving_avgs:
+            m.moving_avg()
 
     def update_tickers(self):
         for s in self.symbols:
