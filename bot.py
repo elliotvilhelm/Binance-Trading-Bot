@@ -3,7 +3,7 @@ from config import api_key, api_secret
 from strategy import MovingAverage
 
 class Bot:
-    def __init__(self, base_coin='BTC', symbols=['XRP', 'BCC', 'BAT']):
+    def __init__(self, base_coin='BTC', symbols=['XRP', 'XLM', 'ADA', 'BAT']):
         self.client = Client(api_key, api_secret)
         self.symbols = symbols
 

@@ -5,4 +5,4 @@ from bot import Bot
 MOON = Bot()
 while True:
     MOON.tick()
-    time.sleep(60)
+    time.sleep(300)
