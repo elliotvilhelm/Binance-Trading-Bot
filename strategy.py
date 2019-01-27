@@ -33,7 +33,7 @@ class MovingAverage:
             last_price = float(ticker['lastPrice'])
             trade_coin_balance = float(self.bot.client.get_asset_balance(asset=self.trade_coin)['free'])
             base_coin_balance = float(self.bot.client.get_asset_balance(asset=self.bot.base_coin)['free'])
-            bid_price = float(ticker['bidPrice'])
+            bid_price = ticker['bidPrice']
             min_quantity = ceil(.001 / float(ticker['bidPrice']))
         else:
             # bid_price = (ask_price + last_price) / 2
