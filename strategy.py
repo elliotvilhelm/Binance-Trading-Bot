@@ -69,7 +69,7 @@ class MovingAverage:
                             price=bid_price)
                     trade = Trade(bid_price, min_quantity, "short", self.trade_coin + self.bot.base_coin)
                     # print("sell -> bid price * min_quantity", bid_price * min_quantity)
-                    base_coin_balance += bid_price * min_quantity
+                    base_coin_balance += float(bid_price) * min_quantity
                     trade_coin_balance -= min_quantity
                     self.trades.append(trade)
                     if not self.backtest:
@@ -89,7 +89,7 @@ class MovingAverage:
                             timeInForce=TIME_IN_FORCE_GTC,
                             quantity=min_quantity,
                             price=ticker['askPrice'])
-                    base_coin_balance -= bid_price * min_quantity
+                    base_coin_balance -= float(bid_price) * min_quantity
                     trade_coin_balance += min_quantity  # trade coin balance in BTC
                     trade = Trade(bid_price, min_quantity, "long", self.trade_coin + self.bot.base_coin)
                     # print("buy -> bid price * min_quantity", bid_price * min_quantity)
